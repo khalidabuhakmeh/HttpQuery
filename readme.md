@@ -66,7 +66,7 @@ app.MapGet("/", async (HttpContext ctx, LinkGenerator generator, string? q) =>
     );
 
     //language=C#
-    q ??= "people.Take(10).OrderByDescending(p => p.Index)";
+    q ??= "people.OrderByDescending(p => p.Index).Take(10)";
 
     request.Content = new StringContent(q, Encoding.UTF8, "text/plain");
 

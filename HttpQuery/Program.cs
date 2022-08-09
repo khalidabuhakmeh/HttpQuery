@@ -4,19 +4,28 @@ using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
-app.MapGet("/", async (HttpContext ctx, LinkGenerator generator, string? q) =>
+app.MapControllers();
+app.MapGet("/", async (HttpContext ctx, LinkGenerator generator, string? q, string? e) =>
 {
     var client = new HttpClient();
+    var endpoint = e switch {
+        "endpoint" => "endpoint",
+        "controller" => "controller",
+        _ => "endpoint"
+    };
 
     var request = new HttpRequestMessage(
         new HttpMethod("QUERY"),
-        generator.GetUriByName(ctx, "people")
+        generator.GetUriByName(ctx, endpoint)
     );
 
     //language=C#
-    q ??= "people.Take(10).OrderByDescending(p => p.Index)";
+    q ??= "people.OrderByDescending(p => p.Index).Take(10)";
 
     request.Content = new StringContent(q, Encoding.UTF8, "text/plain");
 
@@ -45,6 +54,7 @@ app.MapQuery("/people", query =>
         return Results.Ok(new
         {
             query,
+            source = "endpoint",
             results = result
         });
     }
@@ -53,7 +63,7 @@ app.MapQuery("/people", query =>
         return Results.BadRequest(e);
     }
 })
-.WithName("people");
+.WithName("endpoint");
 
 app.Run();
 
